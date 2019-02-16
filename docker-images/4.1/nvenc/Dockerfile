@@ -64,6 +64,7 @@ RUN      buildDeps="autoconf \
                     curl \
                     wget \
                     dpkg \
+                    gnupg2 \
                     bzip2 \
                     libexpat1-dev \
                     g++ \
