@@ -22,8 +22,8 @@ ARG        PREFIX=/opt/ffmpeg
 ARG        MAKEFLAGS="-j2"
 
 ENV         UBUNTU_VERSION=1804      \
-            CUDA_VERSION=10.0.130-1   \
-            CUDA_REPO_KEY="http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub"  \
+            #CUDA_VERSION=10.0.130-1   \
+            #CUDA_REPO_KEY="http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub"  \
             FFMPEG_VERSION=4.1        \
             FDKAAC_VERSION=0.1.5      \
             LAME_VERSION=3.99.5       \
@@ -57,14 +57,13 @@ ARG         LIBVIDSTAB_SHA256SUM="14d2a053e56edad4f397be0cb3ef8eb1ec3150404ce99a
 ARG         LIBASS_SHA256SUM="8fadf294bf701300d4605e6f1d92929304187fca4b8d8a47889315526adbafd7  0.13.7.tar.gz"
 ARG         FRIBIDI_SHA256SUM="3fc96fa9473bd31dcb5500bdf1aa78b337ba13eb8c301e7c28923fea982453a8  0.19.7.tar.gz"
 
-
+##wget \
+##dpkg \
+##gnupg2 \
 RUN      buildDeps="autoconf \
                     automake \
                     cmake \
                     curl \
-                    wget \
-                    dpkg \
-                    gnupg2 \
                     bzip2 \
                     libexpat1-dev \
                     g++ \
@@ -96,18 +95,20 @@ RUN \
         rm -rf ${DIR}
 ## CUDA https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-repo-ubuntu1804_10.0.130-1_amd64.deb
 RUN \
-        DIR=/tmp/cuda && \
-        mkdir -p ${DIR} && \
-        cd ${DIR} && \
-        wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${UBUNTU_VERSION}/x86_64/cuda-repo-ubuntu1804_${CUDA_VERSION}_amd64.deb && \
-        dpkg -i cuda-repo-ubuntu1804_${CUDA_VERSION}_amd64.deb && \
-        apt-key adv --fetch-keys "$CUDA_REPO_KEY" && \
-        apt-get -y update && \
-        apt-get -y install cuda && \
+        #DIR=/tmp/cuda && \
+        #mkdir -p ${DIR} && \
+        #cd ${DIR} && \
+        #wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${UBUNTU_VERSION}/x86_64/cuda-repo-ubuntu1804_${CUDA_VERSION}_amd64.deb && \
+        #dpkg -i cuda-repo-ubuntu1804_${CUDA_VERSION}_amd64.deb && \
+        #apt-key adv --fetch-keys "$CUDA_REPO_KEY" && \
+        #apt-get -y update && \
+        #apt-get -y install cuda && \
+        apt-get install software-properties-common -y --no-install-recommends && \
         env LC_ALL=C.UTF-8 add-apt-repository -y ppa:graphics-drivers/ppa && \
         apt-get -y update && \
-        apt-get -y upgrade && \
-        rm -rf ${DIR}
+        ##apt-get -y upgrade && \
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends nvidia-driver-415
+        ##rm -rf ${DIR}
 ## NVENC https://git.videolan.org/?p=ffmpeg/nv-codec-headers.git
 RUN \
         DIR=/tmp/nv-codec-headers && \
@@ -353,7 +354,6 @@ RUN \
         --disable-debug \
         --disable-doc \
         --disable-ffplay \
-        --enable-vaapi \
         --enable-nvenc \
         --enable-shared \
         --enable-avresample \
@@ -409,10 +409,6 @@ ENV         LD_LIBRARY_PATH=/usr/local/lib
 COPY --from=build /usr/local /usr/local/
 
 RUN \
-  add-apt-repository ppa:graphics-drivers/ppa && \
-	apt-get update -y && \
-	apt-get install -y --no-install-recommends ubuntu-drivers && \
-  ubuntu-drivers autoinstall && \
 	rm -rf /var/lib/apt/lists/*
 
 # Let's make sure the app built correctly
