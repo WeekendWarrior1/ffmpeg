@@ -21,7 +21,10 @@ ARG        LD_LIBRARY_PATH=/opt/ffmpeg/lib
 ARG        PREFIX=/opt/ffmpeg
 ARG        MAKEFLAGS="-j2"
 
-ENV         FFMPEG_VERSION=4.1     \
+ENV         UBUNTU_VERSION=1804      \
+            CUDA_VERSION=10.0.130-1   \
+            CUDA_REPO_KEY="http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub"  \
+            FFMPEG_VERSION=4.1        \
             FDKAAC_VERSION=0.1.5      \
             LAME_VERSION=3.99.5       \
             LIBASS_VERSION=0.13.7     \
@@ -59,6 +62,8 @@ RUN      buildDeps="autoconf \
                     automake \
                     cmake \
                     curl \
+                    wget \
+                    dpkg \
                     bzip2 \
                     libexpat1-dev \
                     g++ \
@@ -88,19 +93,31 @@ RUN \
         make && \
         make install && \
         rm -rf ${DIR}
-
+## CUDA https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-repo-ubuntu1804_10.0.130-1_amd64.deb
+RUN \
+        DIR=/tmp/cuda && \
+        mkdir -p ${DIR} && \
+        cd ${DIR} && \
+        wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${UBUNTU_VERSION}/x86_64/cuda-repo-ubuntu1804_${CUDA_VERSION}_amd64.deb && \
+        dpkg -i cuda-repo-ubuntu1804_${CUDA_VERSION}_amd64.deb && \
+        apt-key adv --fetch-keys "$CUDA_REPO_KEY" && \
+        apt-get -y update && \
+        apt-get -y install cuda && \
+        env LC_ALL=C.UTF-8 add-apt-repository -y ppa:graphics-drivers/ppa && \
+        apt-get -y update && \
+        apt-get -y upgrade && \
+        rm -rf ${DIR}
 ## NVENC https://git.videolan.org/?p=ffmpeg/nv-codec-headers.git
 RUN \
         DIR=/tmp/nv-codec-headers && \
         mkdir -p ${DIR} && \
         cd ${DIR} && \
-        curl -sL https://github.com/FFmpeg/nv-codec-headers/releases/download/n8.2.15.7/nv-codec-headers-8.2.15.7.tar.gz | \
+        curl -sL https://github.com/FFmpeg/nv-codec-headers/releases/download/n${NVENC_VERSION}/nv-codec-headers-${NVENC_VERSION}.tar.gz | \
         tar -zx --strip-components=1 && \
-        ./configure --prefix="${PREFIX}" --enable-shared && \
+        ##./configure --prefix="${PREFIX}" --enable-shared && \
         make && \
         make install && \
         rm -rf ${DIR}
-
 ## x264 http://www.videolan.org/developers/x264.html
 RUN \
         DIR=/tmp/x264 && \
