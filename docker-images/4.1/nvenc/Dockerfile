@@ -75,7 +75,6 @@ RUN      buildDeps="autoconf \
                     python \
                     libssl-dev \
                     yasm \
-                    libva-dev \
                     nvidia-driver-415 \
                     zlib1g-dev" && \
         env LC_ALL=C.UTF-8 add-apt-repository -y ppa:graphics-drivers/ppa && \
