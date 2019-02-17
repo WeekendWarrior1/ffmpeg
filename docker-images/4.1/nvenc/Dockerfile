@@ -10,7 +10,7 @@ FROM        ubuntu:18.04 AS base
 WORKDIR     /tmp/workdir
 
 RUN     apt-get -yqq update && \
-        apt-get install -yq --no-install-recommends ca-certificates expat libgomp1 && \
+        apt-get install -yq --no-install-recommends ca-certificates expat libgomp1 software-properties-common && \
         apt-get autoremove -y && \
         apt-get clean -y
 
@@ -21,10 +21,7 @@ ARG        LD_LIBRARY_PATH=/opt/ffmpeg/lib
 ARG        PREFIX=/opt/ffmpeg
 ARG        MAKEFLAGS="-j2"
 
-ENV         UBUNTU_VERSION=1804      \
-            #CUDA_VERSION=10.0.130-1   \
-            #CUDA_REPO_KEY="http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub"  \
-            FFMPEG_VERSION=4.1        \
+ENV         FFMPEG_VERSION=4.1        \
             FDKAAC_VERSION=0.1.5      \
             LAME_VERSION=3.99.5       \
             LIBASS_VERSION=0.13.7     \
@@ -79,9 +76,11 @@ RUN      buildDeps="autoconf \
                     libssl-dev \
                     yasm \
                     libva-dev \
+                    nvidia-driver-415 \
                     zlib1g-dev" && \
+        env LC_ALL=C.UTF-8 add-apt-repository -y ppa:graphics-drivers/ppa && \
         apt-get -yqq update && \
-        apt-get install -yq --no-install-recommends ${buildDeps}
+        DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends ${buildDeps}
 ## opencore-amr https://sourceforge.net/projects/opencore-amr/
 RUN \
         DIR=/tmp/opencore-amr && \
@@ -93,22 +92,6 @@ RUN \
         make && \
         make install && \
         rm -rf ${DIR}
-## CUDA https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-repo-ubuntu1804_10.0.130-1_amd64.deb
-RUN \
-        #DIR=/tmp/cuda && \
-        #mkdir -p ${DIR} && \
-        #cd ${DIR} && \
-        #wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${UBUNTU_VERSION}/x86_64/cuda-repo-ubuntu1804_${CUDA_VERSION}_amd64.deb && \
-        #dpkg -i cuda-repo-ubuntu1804_${CUDA_VERSION}_amd64.deb && \
-        #apt-key adv --fetch-keys "$CUDA_REPO_KEY" && \
-        #apt-get -y update && \
-        #apt-get -y install cuda && \
-        apt-get install software-properties-common -y --no-install-recommends && \
-        env LC_ALL=C.UTF-8 add-apt-repository -y ppa:graphics-drivers/ppa && \
-        apt-get -y update && \
-        ##apt-get -y upgrade && \
-        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends nvidia-driver-415
-        ##rm -rf ${DIR}
 ## NVENC https://git.videolan.org/?p=ffmpeg/nv-codec-headers.git
 RUN \
         DIR=/tmp/nv-codec-headers && \
